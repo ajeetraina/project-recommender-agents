@@ -1,4 +1,4 @@
-name: project-recommender-agents
+
 
 services:
   # Main Streamlit application
