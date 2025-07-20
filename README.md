@@ -1,6 +1,6 @@
 # 🚀 Project Recommender Agents - Modernized
 
-A sophisticated multi-agent system that analyzes GitHub profiles to recommend personalized hackathon projects and relevant events, following the latest Docker Compose AI patterns.
+A multi-agent system that analyzes GitHub profiles to recommend personalized hackathon projects and relevant events, following the latest Docker Compose AI patterns.
 
 ## ✨ Key Features
 
