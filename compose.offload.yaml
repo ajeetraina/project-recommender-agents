@@ -1,0 +1,13 @@
+models:
+  llm:
+    image: ai/qwen2.5:7b
+
+services:
+  app:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

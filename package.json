@@ -1,0 +1,13 @@
+{
+  "name": "project-recommender-agents",
+  "version": "1.0.0",
+  "description": "Multi-agent system for hackathon project recommendations",
+  "scripts": {
+    "start": "docker compose up --build",
+    "start:openai": "docker compose -f compose.yaml -f compose.openai.yaml up",
+    "start:offload": "docker compose -f compose.yaml -f compose.offload.yaml up",
+    "stop": "docker compose down"
+  },
+  "keywords": ["ai-agents", "mcp", "hackathon", "streamlit"],
+  "license": "MIT"
+}

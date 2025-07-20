@@ -1,0 +1,12 @@
+services:
+  app:
+    environment:
+      - OPENAI_API_KEY_FILE=/run/secrets/openai-api-key
+    secrets:
+      - openai-api-key
+
+secrets:
+  openai-api-key:
+    file: ./secret.openai-api-key
+
+models: {}
