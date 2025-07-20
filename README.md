@@ -160,10 +160,5 @@ curl http://localhost:8811/servers
 # Change from context_size: 32768 to context_size: 16384
 ```
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
-
-Built with ❤️ following docker/compose-for-agents patterns
