@@ -1,0 +1,35 @@
+# Enhanced configuration for Docker Model Runner
+services:
+  recommender-ui:
+    environment:
+      - MODEL_PROVIDER=dmr
+      - DMR_BASE_URL=http://model-runner.docker.internal/engines/v1
+    extra_hosts:
+      - "model-runner.docker.internal:host-gateway"
+
+  agent-orchestrator:
+    environment:
+      - MODEL_PROVIDER=dmr
+      - DMR_BASE_URL=http://model-runner.docker.internal/engines/v1
+    extra_hosts:
+      - "model-runner.docker.internal:host-gateway"
+
+# Optimized model configurations for local inference
+models:
+  recommendation_model:
+    model: ai/qwen2.5:7B-Q4_0  # Larger model for better recommendations
+    context_size: 32768        # 8GB VRAM
+    # context_size: 16384      # 4GB VRAM (fallback)
+    runtime_flags:
+      - "--threads=8"
+      - "--batch-size=512"
+      - "--gpu-layers=35"
+      - "--rope-freq-base=1000000"
+  
+  analysis_model:
+    model: ai/qwen2.5:3B-Q4_0  # Smaller, faster model for analysis
+    context_size: 16384
+    runtime_flags:
+      - "--threads=6"
+      - "--batch-size=256"
+      - "--gpu-layers=28"

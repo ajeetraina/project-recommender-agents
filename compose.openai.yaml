@@ -1,12 +1,31 @@
+# OpenAI API integration
 services:
-  app:
+  recommender-ui:
     environment:
-      - OPENAI_API_KEY_FILE=/run/secrets/openai-api-key
+      - MODEL_PROVIDER=openai
+      - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
     secrets:
-      - openai-api-key
+      - openai_api_key
+
+  agent-orchestrator:
+    environment:
+      - MODEL_PROVIDER=openai
+      - OPENAI_API_KEY_FILE=/run/secrets/openai_api_key
+    secrets:
+      - openai_api_key
+
+# Override with OpenAI models
+models:
+  recommendation_model:
+    model: gpt-4o
+    provider: openai
+    context_size: 128000
+  
+  analysis_model:
+    model: gpt-4o-mini
+    provider: openai
+    context_size: 128000
 
 secrets:
-  openai-api-key:
+  openai_api_key:
     file: ./secret.openai-api-key
-
-models: {}

@@ -1,13 +1,37 @@
-models:
-  llm:
-    image: ai/qwen2.5:7b
+# Cloud deployment overrides for Docker Offload
+# Note: Docker Offload is enabled via 'docker offload start --gpu'
+# This file only contains resource optimizations for cloud execution
 
 services:
-  app:
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+  recommender-ui:
+    environment:
+      - OFFLOAD_ENABLED=true
+      - MODEL_CONTEXT_SIZE=32768
+    
+  agent-orchestrator:
+    environment:
+      - OFFLOAD_ENABLED=true
+      - MODEL_CONTEXT_SIZE=32768
+
+  mcp-gateway:
+    environment:
+      - OFFLOAD_ENABLED=true
+
+# Enhanced models for cloud resources
+models:
+  recommendation_model:
+    # Use larger, more capable model when offloaded
+    model: ai/qwen2.5:14B-Q4_0  # Upgrade from 7B to 14B
+    context_size: 32768         # Larger context
+    runtime_flags:
+      - "--threads=16"          # More CPU threads available
+      - "--batch-size=1024"     # Larger batch size
+      - "--gpu-layers=40"       # Full GPU utilization
+  
+  analysis_model:
+    model: ai/qwen2.5:7B-Q4_0   # Upgrade from 3B to 7B  
+    context_size: 16384
+    runtime_flags:
+      - "--threads=12"
+      - "--batch-size=512"
+      - "--gpu-layers=35"

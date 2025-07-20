@@ -1,20 +1,113 @@
+name: project-recommender-agents
+
 services:
-  app:
-    build: .
+  # Main Streamlit application
+  recommender-ui:
+    build:
+      context: .
+      target: runtime
     ports:
       - "8501:8501"
     environment:
-      - MODEL_URL=http://host.docker.internal:11434
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      # MCP Gateway connection
+      - MCPGATEWAY_ENDPOINT=http://mcp-gateway:8811/sse
+      # Application settings
+      - APP_TITLE=Project Recommender Agents
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # GitHub integration
+      - GITHUB_TOKEN_FILE=/run/secrets/github_token
+    depends_on:
+      - mcp-gateway
+    secrets:
+      - github_token
+    models:
+      # Primary reasoning model for recommendations
+      recommendation_model:
+        endpoint_var: RECOMMENDATION_MODEL_URL
+        model_var: RECOMMENDATION_MODEL_NAME
+      # Analysis model for GitHub profile analysis
+      analysis_model:
+        endpoint_var: ANALYSIS_MODEL_URL
+        model_var: ANALYSIS_MODEL_NAME
     volumes:
-      - .:/app
-    working_dir: /app
+      - ./src:/app/src:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # Multi-agent orchestrator service  
+  agent-orchestrator:
+    build:
+      context: .
+      target: agent-runtime
+    environment:
+      - MCPGATEWAY_ENDPOINT=http://mcp-gateway:8811/sse
+      - GITHUB_TOKEN_FILE=/run/secrets/github_token
+    depends_on:
+      - mcp-gateway
+    secrets:
+      - github_token
+    models:
+      recommendation_model:
+        endpoint_var: RECOMMENDATION_MODEL_URL
+        model_var: RECOMMENDATION_MODEL_NAME
+      analysis_model:
+        endpoint_var: ANALYSIS_MODEL_URL
+        model_var: ANALYSIS_MODEL_NAME
+
+  # MCP Gateway with enhanced tool support
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    use_api_socket: true
+    ports:
+      - "8811:8811"
+    command:
+      - --transport=sse
+      - --servers=github,brave,fetch,filesystem
+    environment:
+      # GitHub integration
+      - GITHUB_TOKEN_FILE=/run/secrets/github_token
+      # Brave Search API
+      - BRAVE_API_KEY_FILE=/run/secrets/brave_api_key
+      # Filesystem access (restricted to workspace)
+      - FILESYSTEM_ALLOWED_PATHS=/workspace
+    secrets:
+      - github_token
+      - brave_api_key
+    volumes:
+      - ./workspace:/workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8811/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# Global model definitions
 models:
-  llm:
-    image: ai/qwen2.5:3b
-    
-networks:
-  default:
-    name: project-recommender
+  recommendation_model:
+    model: ai/qwen2.5:3B-Q4_0
+    context_size: 16384
+    runtime_flags:
+      - "--threads=4"
+      - "--batch-size=256"
+  
+  analysis_model:
+    model: ai/qwen2.5:3B-Q4_0
+    context_size: 8192
+    runtime_flags:
+      - "--threads=4"
+      - "--batch-size=128"
+
+# Secrets management
+secrets:
+  github_token:
+    file: ./.secrets/github_token
+  brave_api_key:
+    file: ./.secrets/brave_api_key
+
+# Volumes
+volumes:
+  workspace:
+    driver: local
